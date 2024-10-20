@@ -20,6 +20,19 @@ spring:
     serialization:
       INDENT_OUTPUT: true
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: puspabeli2@gmail.com
+    password: kptsjfsdkufrcyxy
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
 eureka:
   client:
     service-url:
