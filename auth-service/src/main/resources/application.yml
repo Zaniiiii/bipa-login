@@ -1,0 +1,30 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_db_bipa?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: dayak1352
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: 0f3782146b3b58cdf5cf56f714dc736b03eae006abead6316d238dd921afabe30c0256200d365baf8d16483e9f0ee6fea252e01042529e0c62edc8ee7bc88e28
+  expiration: 1800000  # 1/2 hour in milliseconds
