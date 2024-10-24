@@ -1,0 +1,38 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_db_bipa2?createDatabaseIfNotExist=true&serverTimezone=UTC
+    username: root
+    password: dayak1352
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: puspabeli2@gmail.com
+    password: bnqkbgylnxirusrb
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: ac2a8603eebc62000f414974c62c2ea3608232713c26c3a72c02fca1e333bf76a0b8c28fcad4e24717ffc248c29a66d7390022a35c613e174d5c2f2f7ce8df64
+  expiration: 3600000  # 1 hour in milliseconds
