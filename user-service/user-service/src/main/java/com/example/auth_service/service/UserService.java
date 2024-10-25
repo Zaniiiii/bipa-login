@@ -4,7 +4,10 @@ import com.example.auth_service.entity.User;
 import com.example.auth_service.entity.VerificationToken;
 import com.example.auth_service.repository.UserRepository;
 import com.example.auth_service.repository.VerificationTokenRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,17 +24,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
-    public User registerUser(User user) {
+    public User registerUser(User user, String role) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole("USER");
+        user.setRole(role != null ? role : "USER");
         user.setEnabled(false); // Account is disabled until email is verified
         User savedUser = userRepository.save(user);
 
-        // Generate verification token
         String token = UUID.randomUUID().toString();
         createVerificationToken(savedUser, token);
-
-        // Send verification email
         emailService.sendVerificationEmail(savedUser, token);
 
         return savedUser;
@@ -41,7 +41,7 @@ public class UserService {
         VerificationToken verificationToken = VerificationToken.builder()
                 .token(token)
                 .user(user)
-                .expiryDate(LocalDateTime.now().plusHours(24)) // Token valid for 24 hours
+                .expiryDate(LocalDateTime.now().plusHours(24))
                 .build();
         tokenRepository.save(verificationToken);
     }
@@ -62,7 +62,37 @@ public class UserService {
         return "valid";
     }
 
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    public Optional<User> findById(UUID id) {
+        return userRepository.findById(id);
+    }
+
+    public User updateUser(UUID id, User updatedUser) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setUsername(updatedUser.getUsername());
+        user.setEmail(updatedUser.getEmail());
+        user.setCountry(updatedUser.getCountry());
+        user.setRole(updatedUser.getRole());
+        user.setEnabled(updatedUser.isEnabled());
+        return userRepository.save(user);
+    }
+
+    public void deleteUser(UUID id) {
+        userRepository.deleteById(id);
+    }
+
+
 }

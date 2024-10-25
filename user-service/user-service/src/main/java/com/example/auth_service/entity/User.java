@@ -1,4 +1,5 @@
 package com.example.auth_service.entity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class User {
+
     @Id
     @GeneratedValue
     private UUID id;
@@ -21,11 +23,17 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(unique = true, nullable = false)
+    private String username; // Kolom baru untuk username
+
+    @Column(nullable = false)
     private String country;
 
-    private String role = "USER";  // Default role is USER
+    @Column(nullable = false)
+    private String role;
 
-    private boolean enabled = false;  // Account activation status
+    @Column(nullable = false)
+    private boolean enabled = false;  // Status verifikasi email
 
     private LocalDateTime createdAt;
 

@@ -5,9 +5,15 @@ import com.example.auth_service.service.UserService;
 import com.example.auth_service.security.JwtTokenProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,11 +23,11 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody User user) {
+    public ResponseEntity<?> register(@Valid @RequestBody User user, @RequestParam(required = false) String role) {
         if (userService.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email is already in use");
         }
-        User registeredUser = userService.registerUser(user);
+        User registeredUser = userService.registerUser(user, role);
         return ResponseEntity.ok("Registration successful. Please check your email for verification.");
     }
 
@@ -56,4 +62,37 @@ public class AuthController {
         String token = jwtTokenProvider.createToken(email, user.getRole());
         return ResponseEntity.ok(Map.of("token", token));
     }
+
+    // API khusus untuk admin
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users")
+    public Page<User> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "username") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+        Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        return userService.getAllUsers(PageRequest.of(page, size, sort));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable UUID id) {
+        Optional<User> user = userService.findById(id);
+        return user.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/users/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable UUID id, @RequestBody User updatedUser) {
+        return ResponseEntity.ok(userService.updateUser(id, updatedUser));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok("User deleted successfully");
+    }
+
 }
