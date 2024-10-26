@@ -22,9 +22,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())  // Pastikan CSRF dinonaktifkan
                 .cors()  // Pastikan CORS diaktifkan jika diperlukan
                 .and()
+                .csrf(csrf -> csrf.disable())  // Pastikan CSRF dinonaktifkan
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/verify", "/api/auth/login").permitAll()  // Ijinkan akses ke endpoint tertentu tanpa autentikasi
                         .requestMatchers(
