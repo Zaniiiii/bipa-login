@@ -7,8 +7,8 @@ spring:
 
   datasource:
     url: jdbc:mysql://localhost:3306/chat_db_bipa?createDatabaseIfNotExist=true&serverTimezone=UTC
-    username: root
-    password: dayak1352
+    username: ${DB_USERNAME}  # Mengambil dari .env.properties
+    password: ${DB_PASSWORD}  # Mengambil dari .env.properties
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -26,4 +26,4 @@ eureka:
     prefer-ip-address: true
 
 jwt:
-  secret: ac2a8603eebc62000f414974c62c2ea3608232713c26c3a72c02fca1e333bf76a0b8c28fcad4e24717ffc248c29a66d7390022a35c613e174d5c2f2f7ce8df64
+  secret: ${JWT_SECRET}  # Mengambil dari .env.properties
