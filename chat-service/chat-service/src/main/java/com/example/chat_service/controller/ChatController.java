@@ -1,7 +1,9 @@
 package com.example.chat_service.controller;
 
+import com.example.chat_service.dto.ChatRequestDto;
 import com.example.chat_service.entity.Chat;
 import com.example.chat_service.service.ChatService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,7 +21,12 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/")
-    public Chat createChat(@RequestBody Chat chat) {
+    public Chat createChat(@Valid @RequestBody ChatRequestDto chatRequestDto) {
+        Chat chat = Chat.builder()
+                .chat(chatRequestDto.getChat())
+                .historyId(chatRequestDto.getHistoryId())
+                .build();
+
         return chatService.saveChat(chat);
     }
 
@@ -29,7 +36,12 @@ public class ChatController {
     }
 
     @PutMapping("/{id}")
-    public Chat updateChat(@PathVariable UUID id, @RequestBody Chat updatedChat) {
+    public Chat updateChat(@PathVariable UUID id, @Valid @RequestBody ChatRequestDto chatRequestDto) {
+        Chat updatedChat = Chat.builder()
+                .chat(chatRequestDto.getChat())
+                .historyId(chatRequestDto.getHistoryId())
+                .build();
+
         return chatService.updateChat(id, updatedChat);
     }
 
