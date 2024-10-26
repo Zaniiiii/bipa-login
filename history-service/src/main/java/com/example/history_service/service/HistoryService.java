@@ -3,6 +3,9 @@ package com.example.history_service.service;
 import com.example.history_service.entity.History;
 import com.example.history_service.repository.HistoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,5 +34,26 @@ public class HistoryService {
 
     public void deleteHistory(UUID id) {
         historyRepository.deleteById(id);
+    }
+
+    public Page<History> getAllHistories(String historyName, String status, UUID userId, Pageable pageable) {
+        Specification<History> specification = Specification.where(null);
+
+        if (historyName != null && !historyName.isEmpty()) {
+            specification = specification.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("historyName")), "%" + historyName.toLowerCase() + "%"));
+        }
+
+        if (status != null && !status.isEmpty()) {
+            specification = specification.and((root, query, cb) ->
+                    cb.equal(cb.lower(root.get("status")), status.toLowerCase()));
+        }
+
+        if (userId != null) {
+            specification = specification.and((root, query, cb) ->
+                    cb.equal(root.get("userId"), userId));
+        }
+
+        return historyRepository.findAll(specification, pageable);
     }
 }
