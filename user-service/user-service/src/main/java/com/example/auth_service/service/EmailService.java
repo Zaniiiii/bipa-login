@@ -14,7 +14,7 @@ public class EmailService {
 
     public void sendVerificationEmail(User user, String token) {
         String subject = "Email Verification";
-        String confirmationUrl = "http://localhost:8080/api/auth/verify?token=" + token;
+        String confirmationUrl = "http://ec2-35-85-179-20.us-west-2.compute.amazonaws.com/gateway/api/auth/verify?token=" + token;
         String message = "Please click the link below to verify your email:\n" + confirmationUrl;
 
         SimpleMailMessage email = new SimpleMailMessage();
