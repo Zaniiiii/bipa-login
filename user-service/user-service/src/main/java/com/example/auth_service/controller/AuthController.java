@@ -32,16 +32,28 @@ public class AuthController {
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<?> verifyAccount(@RequestParam("token") String token) {
+    public ResponseEntity<String> verifyAccount(@RequestParam("token") String token) {
         String result = userService.validateVerificationToken(token);
         if (result.equals("valid")) {
-            return ResponseEntity.ok("Email verified successfully. You can now login.");
+            String redirectUrl = "http://ec2-35-85-179-20.us-west-2.compute.amazonaws.com/login";
+            String htmlResponse = "<html>" +
+                    "<body>" +
+                    "<p>Email verified successfully. You will be redirected shortly...</p>" +
+                    "<script>" +
+                    "setTimeout(function() {" +
+                    "window.location.href = '" + redirectUrl + "';" +
+                    "}, 3000);" +  // Redirect setelah 5 detik (5000 ms)
+                    "</script>" +
+                    "</body>" +
+                    "</html>";
+            return ResponseEntity.ok(htmlResponse);
         } else if (result.equals("expired")) {
             return ResponseEntity.badRequest().body("Verification token has expired.");
         } else {
             return ResponseEntity.badRequest().body("Invalid verification token.");
         }
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
@@ -59,7 +71,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Invalid credentials");
         }
 
-        String token = jwtTokenProvider.createToken(email, user.getRole());
+        String token = jwtTokenProvider.createToken(email, user.getRole(), user.getUsername(), String.valueOf(user.getId()));
         return ResponseEntity.ok(Map.of("token", token));
     }
 

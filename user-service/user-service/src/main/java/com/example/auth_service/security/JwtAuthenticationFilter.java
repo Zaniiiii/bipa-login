@@ -50,6 +50,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (jwtTokenProvider.validateToken(token)) {
             String email = jwtTokenProvider.getEmail(token);
             String role = jwtTokenProvider.getRole(token);  // Ambil role dari token
+            String userName = jwtTokenProvider.getUserName(token);
+            String userUuid = jwtTokenProvider.getUserUuid(token);
 
             // Set GrantedAuthority berdasarkan role dari JWT
             List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
