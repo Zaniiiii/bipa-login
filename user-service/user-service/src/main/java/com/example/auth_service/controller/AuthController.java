@@ -22,8 +22,8 @@ import java.util.UUID;
 public class AuthController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
-    @Value("${LOGIN_URL}")
-    private String LOGIN_URL;
+    @Value("${VERIFY_URL}")
+    private String loginUrl;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody User user, @RequestParam(required = false) String role) {
@@ -38,7 +38,7 @@ public class AuthController {
     public ResponseEntity<String> verifyAccount(@RequestParam("token") String token) {
         String result = userService.validateVerificationToken(token);
         if (result.equals("valid")) {
-            String redirectUrl = LOGIN_URL;
+            String redirectUrl = loginUrl;
             String htmlResponse = "<html>" +
                     "<body>" +
                     "<p>Email telah berhasil diverifikasi. Anda akan diteruskan ke halaman masuk...</p>" +

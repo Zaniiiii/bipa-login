@@ -28,6 +28,9 @@ spring:
           starttls:
             enable: true
 
+  config:
+    import: "classpath:.env.properties"
+
 eureka:
   client:
     service-url:
@@ -36,3 +39,4 @@ eureka:
 jwt:
   secret: ${JWT_SECRET}  # Mengambil dari .env.properties
   expiration: 3600000  # 1 hour in milliseconds
+
