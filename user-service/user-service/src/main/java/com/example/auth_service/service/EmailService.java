@@ -3,6 +3,7 @@ package com.example.auth_service.service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -14,10 +15,12 @@ import com.example.auth_service.entity.User;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    @Value("${VERIFY_URL}")
+    private String verifyUrl;
 
     public void sendVerificationEmail(User user, String token) {
         String subject = "Verifikasi Email";
-        String confirmationUrl = "http://ec2-35-85-179-20.us-west-2.compute.amazonaws.com/gateway/api/auth/verify?token=" + token;
+        String confirmationUrl = verifyUrl  + token;
         String message = "<html>" +
                 "<body>" +
                 "<h3>Halo, " + user.getUsername() + "</h3>" +

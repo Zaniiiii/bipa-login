@@ -5,6 +5,7 @@ import com.example.auth_service.service.UserService;
 import com.example.auth_service.security.JwtTokenProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -21,24 +22,26 @@ import java.util.UUID;
 public class AuthController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
+    @Value("${LOGIN_URL}")
+    private String LOGIN_URL;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody User user, @RequestParam(required = false) String role) {
         if (userService.findByEmail(user.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Email is already in use");
+            return ResponseEntity.badRequest().body("Email sudah digunakan");
         }
         User registeredUser = userService.registerUser(user, role);
-        return ResponseEntity.ok("Registration successful. Please check your email for verification.");
+        return ResponseEntity.ok("Pendaftaran Berhasil. Silahkan periksa pos-el anda untuk verifikasi.");
     }
 
     @GetMapping("/verify")
     public ResponseEntity<String> verifyAccount(@RequestParam("token") String token) {
         String result = userService.validateVerificationToken(token);
         if (result.equals("valid")) {
-            String redirectUrl = "http://ec2-35-85-179-20.us-west-2.compute.amazonaws.com/login";
+            String redirectUrl = LOGIN_URL;
             String htmlResponse = "<html>" +
                     "<body>" +
-                    "<p>Email verified successfully. You will be redirected shortly...</p>" +
+                    "<p>Email telah berhasil diverifikasi. Anda akan diteruskan ke halaman masuk...</p>" +
                     "<script>" +
                     "setTimeout(function() {" +
                     "window.location.href = '" + redirectUrl + "';" +
@@ -48,9 +51,9 @@ public class AuthController {
                     "</html>";
             return ResponseEntity.ok(htmlResponse);
         } else if (result.equals("expired")) {
-            return ResponseEntity.badRequest().body("Verification token has expired.");
+            return ResponseEntity.badRequest().body("Token verifikasi sudah kadaluarsa.");
         } else {
-            return ResponseEntity.badRequest().body("Invalid verification token.");
+            return ResponseEntity.badRequest().body("Token verifikasi tidak valid.");
         }
     }
 
@@ -61,14 +64,14 @@ public class AuthController {
         String password = loginData.get("password");
 
         User user = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Pengguna tidak ditemukan"));
 
         if (!user.isEnabled()) {
-            return ResponseEntity.badRequest().body("Email not verified. Please verify your email.");
+            return ResponseEntity.badRequest().body("Email belum terverifikasi. Periksa email anda.");
         }
 
         if (!jwtTokenProvider.getPasswordEncoder().matches(password, user.getPassword())) {
-            return ResponseEntity.badRequest().body("Invalid credentials");
+            return ResponseEntity.badRequest().body("Kredensial tidak valid");
         }
 
         String token = jwtTokenProvider.createToken(email, user.getRole(), user.getUsername(), String.valueOf(user.getId()));
@@ -104,7 +107,7 @@ public class AuthController {
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
-        return ResponseEntity.ok("User deleted successfully");
+        return ResponseEntity.ok("Pengguna berhasil dihapus");
     }
 
 }
