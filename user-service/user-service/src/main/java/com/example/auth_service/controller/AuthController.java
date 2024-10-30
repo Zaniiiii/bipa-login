@@ -22,7 +22,7 @@ import java.util.UUID;
 public class AuthController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
-    @Value("${VERIFY_URL}")
+    @Value("${LOGIN_URL}")
     private String loginUrl;
 
     @PostMapping("/register")
