@@ -126,4 +126,13 @@ public class AuthController {
         return ResponseEntity.ok(count);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users/registration-count")
+    public ResponseEntity<Long> getRegistrationCount(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        long count = userService.countRegisteredUsers(year, month);
+        return ResponseEntity.ok(count);
+    }
+
 }

@@ -101,5 +101,7 @@ public class UserService {
         return loginHistoryRepository.countDistinctByUserIdAndLoginAtAfter(since);
     }
 
-
+    public long countRegisteredUsers(Integer year, Integer month) {
+        return userRepository.countByRegistrationDate(year, month);
+    }
 }
