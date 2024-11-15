@@ -2,6 +2,7 @@ package com.example.auth_service.service;
 
 import com.example.auth_service.entity.User;
 import com.example.auth_service.entity.VerificationToken;
+import com.example.auth_service.repository.LoginHistoryRepository;
 import com.example.auth_service.repository.UserRepository;
 import com.example.auth_service.repository.VerificationTokenRepository;
 import jakarta.validation.Valid;
@@ -23,6 +24,7 @@ public class UserService {
     private final VerificationTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final LoginHistoryRepository loginHistoryRepository;
 
     public User registerUser(User user, String role) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -92,6 +94,11 @@ public class UserService {
 
     public void deleteUser(UUID id) {
         userRepository.deleteById(id);
+    }
+
+    public long countUsersLoggedInLast24Hours() {
+        LocalDateTime since = LocalDateTime.now().minusHours(24);
+        return loginHistoryRepository.countDistinctByUserIdAndLoginAtAfter(since);
     }
 
 

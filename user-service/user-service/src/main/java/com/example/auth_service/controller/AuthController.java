@@ -1,8 +1,10 @@
 package com.example.auth_service.controller;
 
+import com.example.auth_service.entity.LoginHistory;
 import com.example.auth_service.entity.User;
 import com.example.auth_service.service.UserService;
 import com.example.auth_service.security.JwtTokenProvider;
+import com.example.auth_service.repository.LoginHistoryRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class AuthController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final LoginHistoryRepository loginHistoryRepository;
     @Value("${LOGIN_URL}")
     private String loginUrl;
 
@@ -74,6 +77,12 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Kredensial tidak valid");
         }
 
+        // **Simpan kejadian login ke LoginHistory**
+        LoginHistory loginHistory = LoginHistory.builder()
+                .userId(user.getId())
+                .build();
+        loginHistoryRepository.save(loginHistory);
+
         String token = jwtTokenProvider.createToken(email, user.getRole(), user.getUsername(), String.valueOf(user.getId()));
         return ResponseEntity.ok(Map.of("token", token));
     }
@@ -108,6 +117,13 @@ public class AuthController {
     public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.ok("Pengguna berhasil dihapus");
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users/logged-in-last-24-hours")
+    public ResponseEntity<Long> countUsersLoggedInLast24Hours() {
+        long count = userService.countUsersLoggedInLast24Hours();
+        return ResponseEntity.ok(count);
     }
 
 }
