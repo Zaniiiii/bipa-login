@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -129,4 +130,22 @@ public class UserService {
 
         return result;
     }
+
+    public List<Map<String, Object>> getActiveUsers() {
+        LocalDateTime since = LocalDateTime.now().minusHours(24);
+        List<UUID> activeUserIds = loginHistoryRepository.findActiveUserIds(since);
+
+        List<User> users = userRepository.findAllById(activeUserIds);
+
+        List<Map<String, Object>> result = users.stream().map(user -> {
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("userId", user.getId());
+            userData.put("username", user.getUsername());
+            userData.put("country", user.getCountry());
+            return userData;
+        }).collect(Collectors.toList());
+
+        return result;
+    }
+
 }

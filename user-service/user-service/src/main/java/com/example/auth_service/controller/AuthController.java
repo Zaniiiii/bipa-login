@@ -144,4 +144,12 @@ public class AuthController {
         List<Map<String, Object>> recentLogins = userService.getRecentLogins(limit);
         return ResponseEntity.ok(recentLogins);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users/active-details")
+    public ResponseEntity<List<Map<String, Object>>> getActiveUsers() {
+        List<Map<String, Object>> activeUsers = userService.getActiveUsers();
+        return ResponseEntity.ok(activeUsers);
+    }
+
 }
