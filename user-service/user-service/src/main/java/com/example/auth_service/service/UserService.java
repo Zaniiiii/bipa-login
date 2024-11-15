@@ -1,5 +1,6 @@
 package com.example.auth_service.service;
 
+import com.example.auth_service.entity.LoginHistory;
 import com.example.auth_service.entity.User;
 import com.example.auth_service.entity.VerificationToken;
 import com.example.auth_service.repository.LoginHistoryRepository;
@@ -8,13 +9,13 @@ import com.example.auth_service.repository.VerificationTokenRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -103,5 +104,29 @@ public class UserService {
 
     public long countRegisteredUsers(Integer year, Integer month) {
         return userRepository.countByRegistrationDate(year, month);
+    }
+
+    public List<Map<String, Object>> getRecentLogins(int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        List<Object[]> recentLogins = loginHistoryRepository.findRecentUniqueLogins(pageable);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (Object[] record : recentLogins) {
+            UUID userId = (UUID) record[0];
+            LocalDateTime loginAt = (LocalDateTime) record[1];
+
+            Optional<User> userOptional = userRepository.findById(userId);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                Map<String, Object> userData = new HashMap<>();
+                userData.put("userId", user.getId());
+                userData.put("username", user.getUsername());
+                userData.put("loginAt", loginAt);
+                result.add(userData);
+            }
+        }
+
+        return result;
     }
 }

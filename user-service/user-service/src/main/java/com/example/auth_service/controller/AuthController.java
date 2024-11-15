@@ -14,6 +14,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -135,4 +137,11 @@ public class AuthController {
         return ResponseEntity.ok(count);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users/recent-logins")
+    public ResponseEntity<List<Map<String, Object>>> getRecentLogins(
+            @RequestParam(defaultValue = "5") int limit) {
+        List<Map<String, Object>> recentLogins = userService.getRecentLogins(limit);
+        return ResponseEntity.ok(recentLogins);
+    }
 }
