@@ -61,4 +61,13 @@ public class HistoryController {
         historyService.deleteHistory(id);
         return "History deleted successfully by admin";
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/histories/count")
+    public long getTotalHistoriesCount(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
+    ) {
+        return historyService.getTotalHistoriesCount(year, month);
+    }
 }

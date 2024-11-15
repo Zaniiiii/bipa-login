@@ -74,4 +74,13 @@ public class ChatController {
         chatService.deleteChat(id);
         return "Chat deleted successfully by admin";
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/chats/count")
+    public long getChatCount(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
+    ) {
+        return chatService.getChatCount(year, month);
+    }
 }

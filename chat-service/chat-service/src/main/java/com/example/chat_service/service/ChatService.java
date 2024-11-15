@@ -2,6 +2,7 @@ package com.example.chat_service.service;
 
 import com.example.chat_service.entity.Chat;
 import com.example.chat_service.repository.ChatRepository;
+import jakarta.persistence.criteria.Expression;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -132,6 +133,26 @@ public class ChatService {
         } else {
             return "No response from external API";
         }
+    }
+
+    public long getChatCount(Integer year, Integer month) {
+        Specification<Chat> specification = Specification.where(null);
+
+        if (year != null) {
+            specification = specification.and((root, query, cb) -> {
+                Expression<Integer> yearExpression = cb.function("YEAR", Integer.class, root.get("createdAt"));
+                return cb.equal(yearExpression, year);
+            });
+        }
+
+        if (month != null) {
+            specification = specification.and((root, query, cb) -> {
+                Expression<Integer> monthExpression = cb.function("MONTH", Integer.class, root.get("createdAt"));
+                return cb.equal(monthExpression, month);
+            });
+        }
+
+        return chatRepository.count(specification);
     }
 
     // DTO untuk mengirim pesan ke API eksternal

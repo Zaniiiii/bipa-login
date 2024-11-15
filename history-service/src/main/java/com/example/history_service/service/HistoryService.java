@@ -56,4 +56,14 @@ public class HistoryService {
 
         return historyRepository.findAll(specification, pageable);
     }
+
+    public long getTotalHistoriesCount(Integer year, Integer month) {
+        if (year != null && month != null) {
+            return historyRepository.countByYearAndMonth(year, month);
+        } else if (year != null) {
+            return historyRepository.countByYear(year);
+        }
+        return historyRepository.count();
+    }
+
 }
