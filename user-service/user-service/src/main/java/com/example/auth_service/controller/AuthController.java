@@ -10,15 +10,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Sort.Order;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -150,6 +149,36 @@ public class AuthController {
     public ResponseEntity<List<Map<String, Object>>> getActiveUsers() {
         List<Map<String, Object>> activeUsers = userService.getActiveUsers();
         return ResponseEntity.ok(activeUsers);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users/count-by-country")
+    public ResponseEntity<Page<Map<String, Object>>> getUserCountByCountry(
+            @RequestParam(required = false) String country,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "country") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        // Daftar field yang diizinkan untuk sorting
+        List<String> allowedSortFields = Arrays.asList("country", "count");
+
+        if (!allowedSortFields.contains(sortBy)) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        // Karena 'count' bukan properti entitas langsung, kita perlu membuat Sort.Order secara manual
+        Sort.Order sortOrder = new Sort.Order(
+                direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC,
+                sortBy
+        );
+
+        Sort sort = Sort.by(sortOrder);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Map<String, Object>> result = userService.getUserCountByCountry(country, pageable);
+
+        return ResponseEntity.ok(result);
     }
 
 }

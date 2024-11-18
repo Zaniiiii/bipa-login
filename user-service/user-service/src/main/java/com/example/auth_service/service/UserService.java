@@ -148,4 +148,8 @@ public class UserService {
         return result;
     }
 
+    public Page<Map<String, Object>> getUserCountByCountry(String country, Pageable pageable) {
+        return userRepository.countUsersByCountry(country, pageable);
+    }
+
 }

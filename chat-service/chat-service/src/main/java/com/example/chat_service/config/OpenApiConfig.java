@@ -8,7 +8,10 @@ import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.context.annotation.Profile;
+
 @Configuration
+@Profile("dev")
 public class OpenApiConfig {
     @Bean
     public OpenAPI authServiceOpenAPI() {
@@ -26,3 +29,4 @@ public class OpenApiConfig {
                         .url("https://github.com/username/repository"));
     }
 }
+
