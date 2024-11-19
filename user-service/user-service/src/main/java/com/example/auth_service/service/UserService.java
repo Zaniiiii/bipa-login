@@ -1,16 +1,20 @@
 package com.example.auth_service.service;
 
 import com.example.auth_service.entity.LoginHistory;
+import com.example.auth_service.entity.PasswordResetToken;
 import com.example.auth_service.entity.User;
 import com.example.auth_service.entity.VerificationToken;
 import com.example.auth_service.repository.LoginHistoryRepository;
+import com.example.auth_service.repository.PasswordResetTokenRepository;
 import com.example.auth_service.repository.UserRepository;
 import com.example.auth_service.repository.VerificationTokenRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +31,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final LoginHistoryRepository loginHistoryRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+
+
 
     public User registerUser(User user, String role) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -150,6 +157,73 @@ public class UserService {
 
     public Page<Map<String, Object>> getUserCountByCountry(String country, Pageable pageable) {
         return userRepository.countUsersByCountry(country, pageable);
+    }
+
+    // Membuat token reset password
+    public void createPasswordResetToken(User user, String token) {
+        // Hapus token sebelumnya jika ada
+        passwordResetTokenRepository.deleteByUser(user);
+
+        PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDate(LocalDateTime.now().plusHours(1))
+                .build();
+        passwordResetTokenRepository.save(passwordResetToken);
+    }
+
+    public String validatePasswordResetToken(String token) {
+        Optional<PasswordResetToken> optionalToken = passwordResetTokenRepository.findByToken(token);
+        if (optionalToken.isEmpty()) {
+            return "invalidToken";
+        }
+        PasswordResetToken passwordResetToken = optionalToken.get();
+        if (passwordResetToken.isExpired()) {
+            // Hapus token yang kedaluwarsa
+            passwordResetTokenRepository.delete(passwordResetToken);
+            return "expired";
+        }
+        return "valid";
+    }
+
+    // Mendapatkan pengguna berdasarkan token reset password
+    public Optional<User> getUserByPasswordResetToken(String token) {
+        return passwordResetTokenRepository.findByToken(token)
+                .map(PasswordResetToken::getUser);
+    }
+
+    // Mengubah password pengguna
+    @Transactional
+    public void changeUserPassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public String resetPassword(String token, String newPassword) {
+        String result = validatePasswordResetToken(token);
+        if (!result.equals("valid")) {
+            return result;
+        }
+
+        Optional<User> userOptional = getUserByPasswordResetToken(token);
+        if (userOptional.isEmpty()) {
+            return "userNotFound";
+        }
+
+        User user = userOptional.get();
+        changeUserPassword(user, newPassword);
+
+        // Delete the token after resetting the password
+        passwordResetTokenRepository.deleteByUser(user);
+
+        return "success";
+    }
+
+    // Menjalankan setiap hari pada jam 2 pagi
+    @Scheduled(cron = "0 0 2 * * ?")
+    public void removeExpiredPasswordResetTokens() {
+        passwordResetTokenRepository.deleteAllExpiredSince(LocalDateTime.now());
     }
 
 }

@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,17 +25,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtTokenProvider jwtTokenProvider;
 
+    private static final List<String> EXCLUDED_URLS = Arrays.asList(
+            "/api/auth/register",
+            "/api/auth/verify",
+            "/api/auth/login",
+            "/api/auth/forgot-password",
+            "/api/auth/reset-password",
+            "/api/auth/validate-reset-token"
+    );
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         logger.info("Request URI: {}", request.getRequestURI());
 
-        // Melewatkan filter JWT untuk /api/auth/register, /verify, /login
-        if (request.getRequestURI().endsWith("/register") ||
-                request.getRequestURI().endsWith("/verify") ||
-                request.getRequestURI().endsWith("/login")) {
-            logger.info("Skipping JWT Filter for endpoint: {}", request.getRequestURI());
+        String requestURI = request.getRequestURI();
+
+        // Skip JWT processing for excluded URLs
+        if (EXCLUDED_URLS.contains(requestURI)) {
+            logger.info("Skipping JWT Filter for endpoint: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }

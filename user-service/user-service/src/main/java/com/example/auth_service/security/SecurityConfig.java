@@ -26,7 +26,8 @@ public class SecurityConfig {
                 .and()
                 .csrf(csrf -> csrf.disable())  // Pastikan CSRF dinonaktifkan
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/register", "/api/auth/verify", "/api/auth/login").permitAll()  // Ijinkan akses ke endpoint tertentu tanpa autentikasi
+                        .requestMatchers("/api/auth/register", "/api/auth/verify", "/api/auth/login", "/api/auth/forgot-password"
+                                            ,"/api/auth/reset-password-get","/api/auth/reset-password-post","/api/auth/reset-password","/api/auth/validate-reset-token").permitAll()  // Ijinkan akses ke endpoint tertentu tanpa autentikasi
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",

@@ -17,6 +17,8 @@ public class EmailService {
     private final JavaMailSender mailSender;
     @Value("${VERIFY_URL}")
     private String verifyUrl;
+    @Value("${FRONTEND_RESET_PASSWORD_URL}")
+    private String frontendResetPasswordUrl;
 
     public void sendVerificationEmail(User user, String token) {
         String subject = "Verifikasi Email";
@@ -47,5 +49,22 @@ public class EmailService {
         } catch (MessagingException e) {
             throw new RuntimeException("Gagal mengirim email", e);
         }
+    }
+
+    public void sendPasswordResetEmail(User user, String token) {
+        String subject = "Reset Password";
+        // Gunakan URL frontend dengan token sebagai parameter
+        String resetUrl = frontendResetPasswordUrl + "?token=" + token;
+        String message = "<html>" +
+                "<body>" +
+                "<h3>Halo, " + user.getUsername() + "</h3>" +
+                "<p>Anda telah meminta untuk mereset password Anda. Silakan klik tautan di bawah ini untuk mengatur ulang password Anda:</p>" +
+                "<p><a href=\"" + resetUrl + "\">Reset Password Saya</a></p>" +
+                "<p>Jika Anda tidak meminta reset password ini, abaikan email ini.</p>" +
+                "<br>" +
+                "</body>" +
+                "</html>";
+
+        sendHtmlEmail(user.getEmail(), subject, message);
     }
 }

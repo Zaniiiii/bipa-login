@@ -2,6 +2,8 @@ package com.example.auth_service.controller;
 
 import com.example.auth_service.entity.LoginHistory;
 import com.example.auth_service.entity.User;
+import com.example.auth_service.repository.PasswordResetTokenRepository;
+import com.example.auth_service.service.EmailService;
 import com.example.auth_service.service.UserService;
 import com.example.auth_service.security.JwtTokenProvider;
 import com.example.auth_service.repository.LoginHistoryRepository;
@@ -12,11 +14,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.http.HttpHeaders;
 
+import java.net.URI;
 import java.util.*;
 
 @RestController
@@ -26,6 +31,9 @@ public class AuthController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final LoginHistoryRepository loginHistoryRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
+
     @Value("${LOGIN_URL}")
     private String loginUrl;
 
@@ -179,6 +187,55 @@ public class AuthController {
         Page<Map<String, Object>> result = userService.getUserCountByCountry(country, pageable);
 
         return ResponseEntity.ok(result);
+    }
+
+    // Endpoint untuk meminta reset password
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        Optional<User> userOptional = userService.findByEmail(email);
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.badRequest().body("Email tidak ditemukan");
+        }
+
+        User user = userOptional.get();
+        String token = UUID.randomUUID().toString();
+        userService.createPasswordResetToken(user, token);
+        emailService.sendPasswordResetEmail(user, token);
+
+        return ResponseEntity.ok("Email untuk reset password telah dikirim");
+    }
+
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<?> validateResetToken(@RequestParam("token") String token) {
+        String result = userService.validatePasswordResetToken(token);
+        if (result.equals("valid")) {
+            return ResponseEntity.ok("Token valid.");
+        } else if (result.equals("expired")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token reset password telah kadaluarsa.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token reset password tidak valid.");
+        }
+    }
+
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        String newPassword = request.get("password");
+
+        String result = userService.resetPassword(token, newPassword);
+
+        if (result.equals("invalidToken") || result.equals("expired")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token tidak valid atau telah kadaluarsa.");
+        } else if (result.equals("userNotFound")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Pengguna tidak ditemukan.");
+        } else if (result.equals("success")) {
+            return ResponseEntity.ok("Password berhasil direset.");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Terjadi kesalahan.");
+        }
     }
 
 }
