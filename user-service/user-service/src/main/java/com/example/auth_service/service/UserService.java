@@ -64,8 +64,11 @@ public class UserService {
         }
         VerificationToken verificationToken = optionalToken.get();
         if (verificationToken.isExpired()) {
+            // Hapus token yang kedaluwarsa
+            tokenRepository.delete(verificationToken);
             return "expired";
         }
+
         User user = verificationToken.getUser();
         user.setEnabled(true);
         userRepository.save(user);
@@ -224,6 +227,28 @@ public class UserService {
     @Scheduled(cron = "0 0 2 * * ?")
     public void removeExpiredPasswordResetTokens() {
         passwordResetTokenRepository.deleteAllExpiredSince(LocalDateTime.now());
+    }
+
+    @Scheduled(cron = "0 0 3 * * ?") // Menjalankan setiap hari pada jam 3 pagi
+    @Transactional
+    public void removeExpiredVerificationTokensAndUnverifiedUsers() {
+        LocalDateTime now = LocalDateTime.now();
+
+        // Hapus token verifikasi yang kedaluwarsa
+        tokenRepository.deleteAllExpiredSince(now);
+
+        // Tentukan batas waktu (misalnya, akun yang belum terverifikasi lebih dari 7 hari)
+        LocalDateTime cutoffDate = now.minusDays(7);
+        List<User> usersToDelete = userRepository.findUnverifiedUsersCreatedBefore(cutoffDate);
+
+        if (!usersToDelete.isEmpty()) {
+            List<UUID> userIds = usersToDelete.stream()
+                    .map(User::getId)
+                    .collect(Collectors.toList());
+
+            // Hapus pengguna yang belum terverifikasi
+            userRepository.deleteUsersByIds(userIds);
+        }
     }
 
 }

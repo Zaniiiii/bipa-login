@@ -1,12 +1,16 @@
 package com.example.auth_service.repository;
 
 import com.example.auth_service.entity.User;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,4 +31,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             countQuery = "SELECT COUNT(DISTINCT u.country) FROM User u " +
                     "WHERE (:country IS NULL OR u.country = :country)")
     Page<Map<String, Object>> countUsersByCountry(@Param("country") String country, Pageable pageable);
+
+    @Query("SELECT u FROM User u WHERE u.enabled = false AND u.createdAt <= :time")
+    List<User> findUnverifiedUsersCreatedBefore(@Param("time") LocalDateTime time);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM User u WHERE u.id IN :userIds")
+    void deleteUsersByIds(@Param("userIds") List<UUID> userIds);
 }
