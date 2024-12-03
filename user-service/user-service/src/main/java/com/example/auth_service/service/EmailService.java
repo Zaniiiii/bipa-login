@@ -21,14 +21,14 @@ public class EmailService {
     private String frontendResetPasswordUrl;
 
     public void sendVerificationEmail(User user, String token) {
-        String subject = "Verifikasi Email";
+        String subject = "Verifikasi Pos-el";
         String confirmationUrl = verifyUrl  + token;
         String message = "<html>" +
                 "<body>" +
                 "<h3>Halo, " + user.getUsername() + "</h3>" +
-                "<p>Terima kasih telah mendaftar. Silakan klik tautan di bawah ini untuk memverifikasi alamat email Anda:</p>" +
-                "<p><a href=\"" + confirmationUrl + "\">Verifikasi Email Saya</a></p>" +
-                "<p>Jika Anda tidak mendaftar akun ini, abaikan email ini.</p>" +
+                "<p>Terima kasih telah mendaftar. Silakan klik tautan di bawah ini untuk memverifikasi alamat pos-el Anda:</p>" +
+                "<p><a href=\"" + confirmationUrl + "\">Verifikasi pos-el Saya</a></p>" +
+                "<p>Jika Anda tidak mendaftar akun ini, abaikan pos-el ini.</p>" +
                 "<br>" +
                 "</body>" +
                 "</html>";
@@ -47,20 +47,20 @@ public class EmailService {
 
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {
-            throw new RuntimeException("Gagal mengirim email", e);
+            throw new RuntimeException("Gagal mengirim pos-el", e);
         }
     }
 
     public void sendPasswordResetEmail(User user, String token) {
-        String subject = "Reset Password";
+        String subject = "Mengganti Kata Sandi";
         // Gunakan URL frontend dengan token sebagai parameter
         String resetUrl = frontendResetPasswordUrl + "?token=" + token;
         String message = "<html>" +
                 "<body>" +
                 "<h3>Halo, " + user.getUsername() + "</h3>" +
-                "<p>Anda telah meminta untuk mereset password Anda. Silakan klik tautan di bawah ini untuk mengatur ulang password Anda:</p>" +
-                "<p><a href=\"" + resetUrl + "\">Reset Password Saya</a></p>" +
-                "<p>Jika Anda tidak meminta reset password ini, abaikan email ini.</p>" +
+                "<p>Anda telah meminta untuk mengganti kata sandi Anda. Silakan klik tautan di bawah ini untuk mengatur ulang kata sandi anda Anda:</p>" +
+                "<p><a href=\"" + resetUrl + "\">Ganti kata sandi Saya</a></p>" +
+                "<p>Jika Anda tidak meminta mengganti kata sandi, abaikan pos-el ini.</p>" +
                 "<br>" +
                 "</body>" +
                 "</html>";
